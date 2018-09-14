@@ -55,5 +55,58 @@ function testApi () {
     MessageBox(`[${invoke('GetCurrentProcessId').toString()}] ${readString(buffer)}`, 'CurrentProcess', 0x1000);
 }
 
+function testWorld () {
+    this._cameracache_pov = malloc(500);
+
+    writeFloat(this._cameracache_pov, 58346.8984375);
+    writeFloat(this._cameracache_pov + 4, 28209.8183);
+    writeFloat(this._cameracache_pov + 8, 2852.6911);
+
+    writeFloat(this._cameracache_pov + 0xC, -4.6486);
+    writeFloat(this._cameracache_pov + 0x10, 175.479675);
+    writeFloat(this._cameracache_pov + 0x14, 0);
+
+    writeFloat(this._cameracache_pov + 0x18, 80);
+
+
+    let result = WorldToScreen({
+        x: 39257.8828125,
+        y: 46486.81640625,
+        z: 3431.288330078125
+    }, this._cameracache_pov, { x: 960, y: 600 });
+
+    log(result.x, result.y)
+}
+
+
+function testRotation () {
+    this._cameracache_pov = malloc(500);
+
+    writeFloat(this._cameracache_pov, 58346.8984375);
+    writeFloat(this._cameracache_pov + 4, 28209.8183);
+    writeFloat(this._cameracache_pov + 8, 2852.6911);
+
+    writeFloat(this._cameracache_pov + 0xC, -4.6486);
+    writeFloat(this._cameracache_pov + 0x10, 175.479675);
+    writeFloat(this._cameracache_pov + 0x14, 0);
+
+    writeFloat(this._cameracache_pov + 0x18, 80);
+
+    const _aim_rotation = malloc(0xC);
+    const nowRotation = malloc(0xC);
+
+    CalcControlRotation({ x: 100, y: 100, z: 100 },
+        this._cameracache_pov, nowRotation, _aim_rotation);
+
+    log(hex(readFloat(_aim_rotation)));
+    log(hex(readFloat(_aim_rotation + 4)))
+}
+
+
+function testChangeThreadId () {
+    log('before', invoke('GetCurrentThreadId'));
+    ChangeCurrentThreadId(1234);
+    log('after ', invoke('GetCurrentThreadId'));
+}
 
 testApi();
