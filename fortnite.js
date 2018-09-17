@@ -366,6 +366,7 @@ function main () {
     let buffer = malloc(260);
     invoke('kernel32.GetModuleFileNameA', null, buffer, 260);
     log('current:', readString(buffer));
+    free(buffer);
 
     setupWindow();
 
