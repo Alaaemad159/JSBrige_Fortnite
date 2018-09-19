@@ -219,24 +219,41 @@ function coreHack () {
   if (!g_fn.updateAddress())
     return;
 
-  /*
+
+  let tmp = malloc(0xC);
+  writeFloat(tmp, 16);
+  writeFloat(tmp + 4, 240);
+  writeFloat(tmp + 8, 0);
+
+  log('call test');
+  log(hex(g_fn.pLocalPlayerController));
+  g_fn.hijackThreadId();
+  fastcall(0x141047550, g_fn.pLocalPlayerController,tmp);
+  g_fn.restoreThreadId();
+
+  log('call test end');
+
+  exitHack();
+  return;
+
+
   {
-      const POV = g_fn.getCameraCacheObject();
+    const POV = g_fn.getCameraCacheObject();
 
-      g_d3d9.drawString(220, 50, COLOR.Green_a, 'POV.Location.X: ' + POV.Location.X);
-      g_d3d9.drawString(220, 65, COLOR.Green_a, 'POV.Location.Y: ' + POV.Location.Y);
-      g_d3d9.drawString(220, 80, COLOR.Green_a, 'POV.Location.Z: ' + POV.Location.Z);
+    g_d3d9.drawString(220, 50, COLOR.Green_a, 'POV.Location.X: ' + POV.Location.X);
+    g_d3d9.drawString(220, 65, COLOR.Green_a, 'POV.Location.Y: ' + POV.Location.Y);
+    g_d3d9.drawString(220, 80, COLOR.Green_a, 'POV.Location.Z: ' + POV.Location.Z);
 
-      g_d3d9.drawString(220, 100, COLOR.Green_a, 'POV.Rotation.Pitch: ' + POV.Rotation.Pitch);
-      g_d3d9.drawString(220, 115, COLOR.Green_a, 'POV.Rotation.Yaw: ' + POV.Rotation.Yaw);
-      g_d3d9.drawString(220, 130, COLOR.Green_a, 'POV.Rotation.Roll: ' + POV.Rotation.Roll);
+    g_d3d9.drawString(220, 100, COLOR.Green_a, 'POV.Rotation.Pitch: ' + POV.Rotation.Pitch);
+    g_d3d9.drawString(220, 115, COLOR.Green_a, 'POV.Rotation.Yaw: ' + POV.Rotation.Yaw);
+    g_d3d9.drawString(220, 130, COLOR.Green_a, 'POV.Rotation.Roll: ' + POV.Rotation.Roll);
 
-      g_d3d9.drawString(220, 150, COLOR.Green_a, 'POV.FOV: ' + POV.FOV);
+    g_d3d9.drawString(220, 150, COLOR.Green_a, 'POV.FOV: ' + POV.FOV);
 
-      g_d3d9.drawString(220, 170, COLOR.Green_a, 'GGameThreadId: ' + readDWord(g_fn.pGGameThreadId));
+    g_d3d9.drawString(220, 170, COLOR.Green_a, 'GGameThreadId: ' + readDWord(g_fn.pGGameThreadId));
 
   }
-  */
+
   const self = new AActor(g_fn.pLocalPlayerAPawn);
   const self_location = g_fn.getLocalPlayerLocation();
   const actors = g_fn.getActors(g_fn.pPersistentLevel);

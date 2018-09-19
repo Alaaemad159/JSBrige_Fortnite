@@ -37,6 +37,7 @@ class Fortnite extends Unreal4 {
     this.pLocalPlayerController = 0;
     this.pLocalPlayerAPawn = 0;
     this.pViewportClient = 0;
+    this.pFortPlayerCameraBase = 0;
     this.POV = 0;
     this.pGGameThreadId = 0;
 
@@ -53,10 +54,28 @@ class Fortnite extends Unreal4 {
 
 
     {
+
+      //  FF 15 90 29 ED 01     call  cs:qword_1436093D8 ; GetCurrentThreadId
+      //  3B 05 FA 29 C4 03     cmp   eax, cs:?GGameThreadId@@3IA ; uint GGameThreadId
+      //  0F 94 C1              setz  cl
+      //  84 C9                 test  cl, cl
+      let address = findPattern(SIG.GAME_THREAD_ID, SIG.GAME_THREAD_ID_MASK);
+      if (address <= 0) {
+        console.error('can\'t find SIG.GGameThreadId');
+        exit();
+      }
+      address += 6; // cmp xxx
+      let offset = readInt(address + 2);
+      this.pGGameThreadId = address + 6 + offset;
+      log('Fortnite.pGGameThreadId'.padEnd(32), hex(this.pGGameThreadId));
+    }
+
+
+    {
       this.func.SetControlRotationGuarded = findPattern(SIG.SET_CONTROL_ROTATION_GUARDED, SIG.SET_CONTROL_ROTATION_GUARDED_MASK); // AFortPlayerController::SetControlRotationGuarded
       log('func.SetControlRotationGuarded'.padEnd(32), hex(this.func.SetControlRotationGuarded));
       if (!this.func.SetControlRotationGuarded) {
-        log('get SetControlRotationGuarded failed');
+        console.error('can\'t find SIG.SetControlRotationGuarded');
         exit();
       }
 
@@ -64,23 +83,10 @@ class Fortnite extends Unreal4 {
       this.func.GetCameraCachePOV = findPattern(SIG.GET_CAMERA_CACHE_CACHE_POV, SIG.GET_CAMERA_CACHE_CACHE_POV_MASK);
       log('func.GetCameraCachePOV'.padEnd(32), hex(this.func.GetCameraCachePOV));
       if (!this.func.GetCameraCachePOV) {
-        log('get GetCameraCachePOV failed');
+        console.error('can\'t find SIG.GetCameraCachePOV');
         exit();
       }
 
-      {
-        // FF 15 D9 7D 36 02   call cs:__imp_GetCurrentThreadId
-        // 3B 05 3B 1A E4 03   cmp  eax, cs:?GGameThreadId@@3IA ; uint GGameThreadId
-        let address = findPattern(this.func.GetCameraCachePOV, 0xFF, '\xFF\x15\x00\x00\x00\x00\x3B\x05', 'xx????xx');
-        if (address <= 0) {
-          console.error('can\'t find SIG.GGameThreadId');
-          exit();
-        }
-        address += 6; // cmp xxx
-        let offset = readInt(address + 2);
-        this.pGGameThreadId = address + 6 + offset;
-        log('Fortnite.pGGameThreadId'.padEnd(32), hex(this.pGGameThreadId));
-      }
       /*
       this.func.UACGuardValueHelperSet = findPattern(SIG.VALUE_GUARD_HELPER, SIG.VALUE_GUARD_HELPER_MASK); // UACGuardValueHelper::Set
       log('func.UACGuardValueHelperSet'.padEnd(32), hex(this.func.UACGuardValueHelperSet));
@@ -124,6 +130,7 @@ class Fortnite extends Unreal4 {
     this.pLocalPlayer = readPointer(this.pLocalPlayerArray);			                                                  // pGameInstance->LocalPlayers
     this.pLocalPlayerController = readPointer(this.pLocalPlayer + OFFSET.ULocalPlayer_PlayerController);		        // pLocalPlayer->PlayerController
     this.pViewportClient = readPointer(this.pLocalPlayer + OFFSET.ULocalPlayer_ViewportClient);				              // pLocalPlayer->ViewportClient
+    this.pFortPlayerCameraBase = readPointer(this.pLocalPlayerController + OFFSET.APlayerController_PlayerCameraManager);
     this.pLocalPlayerAPawn = readPointer(this.pLocalPlayerController + OFFSET.APlayerController_AcknowledgedPawn);	// pAPlayerController->Pawn;
 
     let Vtables = readPointer(this.pLocalPlayerController);
@@ -208,12 +215,9 @@ class Fortnite extends Unreal4 {
       this._aim_rotation = malloc(0xC);
     }
 
-    // log('address: ', hex(this._cameracache_pov));
-    // log(hex(readBytes(this._cameracache_pov,0x50)));
-    // FMinimalViewInfo *__fastcall FCameraObfuscationHelpers::GetCameraCachePOV(FMinimalViewInfo *POV, AActor *OwnerOb, FMinimalViewInfo *View, char KeyIdx)
 
     this.hijackThreadId();
-    fastcall(this.func.GetCameraCachePOV, this._cameracache_pov, null, this._cameracache_pov, 0);
+    fastcall(this.func.GetCameraCachePOV, this.pFortPlayerCameraBase, this._cameracache_pov);
     this.restoreThreadId();
 
     return this._cameracache_pov;
