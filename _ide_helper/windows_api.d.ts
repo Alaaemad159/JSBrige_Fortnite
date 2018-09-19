@@ -1,12 +1,3 @@
-/**
- * stdcall
- * 最多支持16个参数
- * @param {String} address API Name or Function Address
- * @param param
- * @returns {Number}
- */
-import ResolvedNumberFormatOptions = Intl.ResolvedNumberFormatOptions;
-
 declare function stdcall(address: String | Number, ...param: any[]): Number;
 
 /**

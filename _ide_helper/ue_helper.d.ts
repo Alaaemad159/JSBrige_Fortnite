@@ -27,7 +27,7 @@ declare function GetBoneLocation(root: Number, bones: Number, index: Number): { 
  * @returns {{Pitch: Number, Yaw: Number, Roll: Number}}
  * @constructor
  */
-declare function CalcControlRotation(location: { x: Number, y: Number, z: Number }, POV: Number, nowRotation: Number, outRotation : Number);
+declare function CalcControlRotation(location: { x: Number, y: Number, z: Number }, POV: Number, nowRotation: Number, outRotation: Number);
 
 
 
