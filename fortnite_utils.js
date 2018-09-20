@@ -100,18 +100,73 @@ class Fortnite extends Unreal4 {
   }
 
 
-  hijackThreadId () {
+  hijackThreadTls () {
     if (!this._origin_threadId) {
       this._origin_threadId = invoke('GetCurrentThreadId');
       this.GGameThreadId = readDWord(this.pGGameThreadId);
-      log('GGameThreadId'.padEnd(32), this.GGameThreadId);
+
+      log('SelfThreadId'.padEnd(32), this._origin_threadId);
+      log('GameThreadId'.padEnd(32), this.GGameThreadId);
+
+      this.hijackThread = {
+        gameTeb: 0,
+        selfTeb: 0,
+
+        game_store: 0,
+        origin_store: 0,
+      };
+
+      {
+        const hGGameThread = invoke('OpenThread', 0x1FFFFF/*THREAD_ALL_ACCESS*/, 0, this.GGameThreadId);
+        if (hGGameThread < 1) {
+          console.error('OpenThread failed: ' + GetLastError());
+          exit();
+        }
+        const infoSize = g_is64 ? 0x30 : 0x1C;
+        let baseInfo = malloc(infoSize);
+        let status = invoke('NtQueryInformationThread', hGGameThread, 0/*THREADINFOCLASS*/, baseInfo, infoSize, 0);
+        if (status !== 0) {
+          console.error('NtQueryInformationThread failed: ' + hex(status));
+          exit();
+        }
+        this.hijackThread.gameTeb = readPointer(baseInfo + sizeof.DWORD_PTR); // THREAD_BASIC_INFORMATION.TebBaseAddress
+        invoke('CloseHandle', hGGameThread);
+
+
+        const hSelfThread = invoke('OpenThread', 0x1FFFFF/*THREAD_ALL_ACCESS*/, 0, this._origin_threadId);
+        if (hSelfThread < 1) {
+          console.error('OpenThread failed: ' + hex(status));
+          exit();
+        }
+        status = invoke('NtQueryInformationThread', hSelfThread, 0/*THREADINFOCLASS*/, baseInfo, infoSize, 0);
+        if (status !== 0) {
+          console.error('NtQueryInformationThread failed: ' + hex(status));
+          exit();
+        }
+        this.hijackThread.selfTeb = readPointer(baseInfo + sizeof.DWORD_PTR); // THREAD_BASIC_INFORMATION.TebBaseAddress
+        invoke('CloseHandle', hSelfThread);
+        free(baseInfo);
+      }
+
+      log('SelfThread.TEB'.padEnd(32), hex(this.hijackThread.selfTeb));
+      log('GameThread.TEB'.padEnd(32), hex(this.hijackThread.gameTeb));
+
+      this.hijackThread.game_store = readPointer(this.hijackThread.gameTeb + 0x1780);
+      this.hijackThread.origin_store = readPointer(this.hijackThread.selfTeb + 0x1780);
     }
+
+    // GetCurrentThreadId hijack !!
     ChangeCurrentThreadId(this.GGameThreadId);
+
+    // TlsGetValue hijack !!
+    // RtlCopyMemory(this.hijackThread.selfTeb + 0x1480, this.hijackThread.gameTeb + 0x1480, 0x200);
+    // RtlCopyMemory(this.hijackThread.selfTeb + 0x1780, this.hijackThread.gameTeb + 0x1780, 0x8);
+    writePointer(this.hijackThread.selfTeb + 0x1780, this.hijackThread.game_store);
   }
 
-  restoreThreadId () {
-    if (this._origin_threadId)
-      ChangeCurrentThreadId(this._origin_threadId);
+  restoreThreadTls () {
+    ChangeCurrentThreadId(this._origin_threadId);
+    writePointer(this.hijackThread.selfTeb + 0x1780, this.hijackThread.origin_store);
   }
 
   /**
@@ -216,9 +271,9 @@ class Fortnite extends Unreal4 {
     }
 
 
-    this.hijackThreadId();
+    this.hijackThreadTls();
     fastcall(this.func.GetCameraCachePOV, this.pFortPlayerCameraBase, this._cameracache_pov);
-    this.restoreThreadId();
+    this.restoreThreadTls();
 
     return this._cameracache_pov;
 
@@ -273,7 +328,7 @@ class Fortnite extends Unreal4 {
   }
 
   free () {
-    g_fn.restoreThreadId();
+    g_fn.restoreThreadTls();
     if (this._cameracache_pov) {
       free(this._cameracache_pov);
       free(this._aim_rotation);

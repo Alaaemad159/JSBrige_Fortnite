@@ -17,8 +17,8 @@ const SIG = {
   DE_OBFUSCATE: "\xE8\x00\x00\x00\x00\x48\x8B\xF0\x33\xC0\x48\x89\x07",
   DE_OBFUSCATE_MASK: "x????xxxxxxxx",
 
-  SET_CONTROL_ROTATION_GUARDED: '\x40\x53\x48\x83\xec\x20\x48\x8b\x01\x48\x8b\xd9\xff\x90\x38\x06\x00\x00\x48\x8B\xCB\x48\x83\xC4\x20\x5B\xE9',
-  SET_CONTROL_ROTATION_GUARDED_MASK: 'xxxxxxxxxxxxxx?xxxxxxxxxxxx',
+  SET_CONTROL_ROTATION_GUARDED: '\x40\x53\x48\x83\xEC\x20\x44\x8B\x4A\x04\x48\x8B\xD9\x8B\x02\x45\x8B\xC1\x25\x76\xBF\x3B\x72',
+  SET_CONTROL_ROTATION_GUARDED_MASK: 'xxxxxxxxxxxxxxxxxxxxxxx',
 
   GET_CAMERA_CACHE_CACHE_POV: '\x48\x89\x5C\x24\x18\x55\x48\x8D\xAC\x24\x00\x00\x00\x00\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\x05\x00\x00\x00\x00\x48\x33\xC4\x48\x89\x85\x00\x00\x00\x00\x48\x8B\xDA\x48\x8D\x95',
   GET_CAMERA_CACHE_CACHE_POV_MASK: 'xxxxxxxxxx????xxx????xxx????xxxxxx????xxxxxx',
@@ -102,8 +102,7 @@ const OFFSET = {
   ACharacter_Mesh: 0x0388,
 
   APawn_PlayerState: 0x0348,
-  APlayerState_PlayerName: 0x0330,
-  APlayerState_TeamIndex: 0x0B80,  // AFortPlayerStateAthena.TeamIndex
+  APlayerState_TeamIndex: 0x0B90,  // AFortPlayerStateAthena.TeamIndex
   APlayerState_CurrentHealth: 0x0AEC,  // AFortPlayerStateZone.CurrentHealth
   APlayerState_CurrentShield: 0x0AF4,  // AFortPlayerStateZone.CurrentShield
 

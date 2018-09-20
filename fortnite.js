@@ -206,9 +206,9 @@ function doAimBot () {
 
     // log('aim:', readFloat(g_fn._aim_rotation), readFloat(g_fn._aim_rotation + 4), readFloat(g_fn._aim_rotation + 8));
 
-    g_fn.hijackThreadId();
+    g_fn.hijackThreadTls();
     fastcall(g_fn.func.SetControlRotationGuarded, g_fn.pLocalPlayerController, g_fn._aim_rotation);
-    g_fn.restoreThreadId();
+    g_fn.restoreThreadTls();
   }
 
 }
@@ -219,24 +219,7 @@ function coreHack () {
   if (!g_fn.updateAddress())
     return;
 
-
-  let tmp = malloc(0xC);
-  writeFloat(tmp, 16);
-  writeFloat(tmp + 4, 240);
-  writeFloat(tmp + 8, 0);
-
-  log('call test');
-  log(hex(g_fn.pLocalPlayerController));
-  g_fn.hijackThreadId();
-  fastcall(0x141047550, g_fn.pLocalPlayerController,tmp);
-  g_fn.restoreThreadId();
-
-  log('call test end');
-
-  exitHack();
-  return;
-
-
+  /*
   {
     const POV = g_fn.getCameraCacheObject();
 
@@ -253,6 +236,7 @@ function coreHack () {
     g_d3d9.drawString(220, 170, COLOR.Green_a, 'GGameThreadId: ' + readDWord(g_fn.pGGameThreadId));
 
   }
+  */
 
   const self = new AActor(g_fn.pLocalPlayerAPawn);
   const self_location = g_fn.getLocalPlayerLocation();
